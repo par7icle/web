@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Тест API книг</title>
+</head>
+<body>
+    <h2>Добавление книги</h2>
+
+    <button onclick="addBook()">Добавить книгу</button>
+
+    <pre id="result"></pre>
+
+    <script>
+        async function addBook() {
+            const response = await fetch(
+                'http://localhost/Lab15/hs/lr16/api/books',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: 'Война и мир',
+                        author: 'Лев Толстой',
+                        year: 1869
+                    })
+                }
+            );
+
+            document.getElementById('result').textContent =
+                await response.text();
+        }
+    </script>
+</body>
+</html>
