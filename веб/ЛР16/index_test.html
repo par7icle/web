@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ЛР16 — HTTP-сервис 1С</title>
+    <style>
+        body { max-width: 55rem; margin: 1.5rem; }
+        h1 { font-size: 1.5rem; }
+        h2 { font-size: 1.15rem; }
+        .row { display: flex; flex-wrap: wrap; align-items: end; gap: 0.5rem; }
+        label { display: grid; gap: 0.2rem; }
+        input[type="number"] { width: 5rem; }
+        pre { border: 1px solid #ccc; padding: 0.5rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+    </style>
+</head>
+<body>
+    <h1>ЛР16. HTTP-сервис 1С</h1>
+    <p>Группа 478</p>
+
+    <h2>Страницы</h2>
+    <nav>
+        <a data-route="/">Главная</a>
+        · <a data-route="/about">О разработчике</a>
+        · <a data-route="/contacts">Контакты</a>
+    </nav>
+
+    <h2>Книги</h2>
+    <p class="row">
+        <label>Название <input id="title" value="Преступление и наказание"></label>
+        <label>Автор <input id="author" value="Федор Достоевский"></label>
+        <label>Год <input id="year" type="number" value="1866"></label>
+        <button type="button" onclick="makeRequest('/api/books', 'POST', bookData())">Добавить</button>
+    </p>
+    <p class="row">
+        <label>ID <input id="bookId" type="number" min="1" value="1"></label>
+        <button type="button" onclick="makeRequest(bookPath())">Найти по ID</button>
+        <button type="button" onclick="makeRequest(bookPath(), 'PUT', bookData())">Обновить</button>
+        <button type="button" onclick="makeRequest(bookPath(), 'DELETE')">Удалить</button>
+        <button type="button" onclick="makeRequest('/api/books')">Показать все книги</button>
+    </p>
+    <p class="row">
+        <label>Поиск по автору <input id="searchAuthor" value="Толстой"></label>
+        <button type="button" onclick="searchBooks()">Найти</button>
+    </p>
+
+    <h2>Ошибки и заголовки</h2>
+    <p class="row">
+        <a data-route="/error">Синхронная ошибка</a>
+        <a data-route="/async-error">Асинхронная ошибка</a>
+        <button type="button" onclick="makeRequest('/api/books')">Проверить сжатие и лимит</button>
+    </p>
+
+    <h2>Ответ сервера</h2>
+    <p id="statusInfo" role="status"></p>
+    <pre id="result">Здесь появится ответ на запрос.</pre>
+
+    <script>
+        const publication = location.pathname.startsWith('/hello1c/') ? '/hello1c' : '/Lab15';
+        const baseUrl = publication + '/hs/lr16';
+        const statusInfo = document.getElementById('statusInfo');
+        const result = document.getElementById('result');
+
+        for (const link of document.querySelectorAll('[data-route]')) {
+            link.href = baseUrl + link.dataset.route;
+        }
+
+        async function makeRequest(path, method = 'GET', data) {
+            statusInfo.textContent = `${method} ${path}…`;
+            result.textContent = '';
+
+            try {
+                const options = { method };
+                if (data !== undefined) {
+                    options.headers = { 'Content-Type': 'application/json' };
+                    options.body = JSON.stringify(data);
+                }
+
+                const response = await fetch(baseUrl + path, options);
+                const text = await response.text();
+                const remaining = response.headers.get('X-RateLimit-Remaining') ?? '—';
+                const limit = response.headers.get('X-RateLimit-Limit') ?? '—';
+                const encoding = response.headers.get('Content-Encoding') ?? 'нет';
+                statusInfo.textContent = `${method} ${path} → ${response.status} | Лимит: ${remaining}/${limit} | Сжатие: ${encoding}`;
+
+                try {
+                    result.textContent = JSON.stringify(JSON.parse(text), null, 2);
+                } catch {
+                    result.textContent = text;
+                }
+            } catch (error) {
+                statusInfo.textContent = 'Ошибка сети: ' + error.message;
+            }
+        }
+
+        function bookData() {
+            return {
+                title: document.getElementById('title').value,
+                author: document.getElementById('author').value,
+                year: document.getElementById('year').valueAsNumber,
+            };
+        }
+
+        function bookPath() {
+            return '/api/books/' + document.getElementById('bookId').value;
+        }
+
+        function searchBooks() {
+            const author = encodeURIComponent(document.getElementById('searchAuthor').value);
+            makeRequest('/api/books/search?author=' + author);
+        }
+    </script>
+</body>
+</html>

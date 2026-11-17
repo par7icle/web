@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Тест API книг</title>
+</head>
+<body>
+    <h2>Обновление книги</h2>
+
+    <button onclick="updateBook()">Изменить книгу</button>
+
+    <pre id="result"></pre>
+
+    <script>
+        async function updateBook() {
+            const response = await fetch(
+                'http://localhost/Lab15/hs/lr16/api/books/1',
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: 'Война и мир (обновлённая)',
+                        author: 'Лев Толстой',
+                        year: 1869
+                    })
+                }
+            );
+
+            document.getElementById('result').textContent =
+                await response.text();
+        }
+    </script>
+</body>
+</html>
