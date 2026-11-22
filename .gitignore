@@ -1,22 +1,7 @@
-# Dependencies and local configuration
-node_modules/
-.env
-.env.*
-!.env.example
-
-# 1C working databases, locks and caches
-InfoBase*/
+# Local 1C backups and caches
+*.dt
 *.1CD
-*.1CL
-*.cfl
-*.lgp
-*.lgf
-*.lgx
 *.log
-
-# Empty output files from local checks
-/output-err.txt
-/output-pipeline-err.txt
 
 # OS files
 .DS_Store
